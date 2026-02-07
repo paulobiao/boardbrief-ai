@@ -25,6 +25,7 @@ The incident raises concerns around internal access governance, role-based acces
 export default function Page() {
   const [incident, setIncident] = useState(INCIDENTS.phishing);
   const [brief, setBrief] = useState("");
+  const [view, setView] = useState<"executive" | "technical">("executive");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -59,6 +60,7 @@ export default function Page() {
           Turn cybersecurity incidents into executive-ready decision briefs.
         </p>
 
+        {/* Preset incidents */}
         <div className="mt-6 flex flex-wrap gap-2">
           <button
             onClick={() => setIncident(INCIDENTS.phishing)}
@@ -81,6 +83,7 @@ export default function Page() {
         </div>
 
         <div className="mt-8 grid gap-6 md:grid-cols-2">
+          {/* Incident input */}
           <div className="rounded-2xl border p-4 shadow-sm">
             <h2 className="font-semibold">Incident input</h2>
             <textarea
@@ -98,16 +101,46 @@ export default function Page() {
             {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
           </div>
 
+          {/* Executive / Technical view */}
           <div className="rounded-2xl border p-4 shadow-sm">
             <h2 className="font-semibold">Executive brief</h2>
-            <div className="mt-3 h-64 overflow-auto rounded-xl bg-gray-50 p-3 text-sm whitespace-pre-wrap">
-              {brief || "Click Generate to produce a board-ready brief."}
+
+            {/* View toggle */}
+            <div className="flex gap-2 mt-2 mb-2">
+              <button
+                onClick={() => setView("executive")}
+                className={`px-3 py-1 rounded text-sm ${
+                  view === "executive" ? "bg-black text-white" : "border"
+                }`}
+              >
+                Executive View
+              </button>
+              <button
+                onClick={() => setView("technical")}
+                className={`px-3 py-1 rounded text-sm ${
+                  view === "technical" ? "bg-black text-white" : "border"
+                }`}
+              >
+                Technical Context
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-500 mb-2">
+              Same incident. Different decision depth.
+            </p>
+
+            <div className="mt-2 h-64 overflow-auto rounded-xl bg-gray-50 p-3 text-sm whitespace-pre-wrap">
+              {brief
+                ? view === "executive"
+                  ? brief.split("\n").slice(0, 25).join("\n")
+                  : brief
+                : "Click Generate to produce a board-ready brief."}
             </div>
           </div>
         </div>
 
         <p className="mt-8 text-xs text-gray-500">
-          AI-generated decision support. Review recommended.
+          AI-generated decision support. Human review recommended.
         </p>
       </div>
     </main>
