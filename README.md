@@ -1,39 +1,120 @@
-## Live Demo
-https://boardbrief-ai.vercel.app
+# BoardBrief AI (Gemini 3)
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+BoardBrief AI transforms raw cybersecurity incident descriptions into executive-ready decision briefs.
 
-## Getting Started
+Security incidents are usually written for engineers. Executives need clarity: business impact, risk exposure, and clear next actions. BoardBrief AI bridges this gap using Google Gemini to produce concise, board-level cybersecurity assessments.
 
-First, run the development server:
+---
+
+## What it does
+
+**Input:** Plain-text cybersecurity incident description  
+**Output:** Executive cybersecurity brief including:
+- Executive Summary
+- Business Impact (financial, operational, legal, reputational)
+- Top 3 Recommended Actions
+- Key Questions for Leadership
+
+The system is designed for decision support, not technical analysis.
+
+---
+
+## Example incident scenarios
+
+This project includes three standard incident scenarios used for demonstrations:
+- Phishing / Business Email Compromise
+- Cloud Access Misconfiguration
+- Insider Access Misuse
+
+These examples show how BoardBrief AI adapts to different risk categories while maintaining a consistent executive format.
+
+---
+
+## Design principles
+
+- No fabrication of facts or dates
+- Explicit assumptions when information is missing
+- Executive-friendly language
+- Focus on governance, risk, and decision-making
+- Clear feedback when content is restricted by safety policies
+
+---
+
+## Built with
+
+- **Google Gemini 3** (gemini-2.0-flash)
+- Next.js (App Router)
+- TypeScript
+- Vercel
+
+---
+
+## Run locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Set environment variables:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+GEMINI_API_KEY=your_api_key_here
+Disclaimer
+This tool provides AI-generated decision support and should be reviewed by qualified leadership and security professionals.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## PASSO 3B — Texto FINAL do Devpost (colar direto)
 
-To learn more about Next.js, take a look at the following resources:
+### Project Title
+**BoardBrief AI (Gemini 3)**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Elevator Pitch
+Turn cybersecurity incidents into executive-ready decision briefs in minutes.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Project Description / Story
+> BoardBrief AI (Gemini 3) converts unstructured cybersecurity incident descriptions into concise, executive-level decision briefs.
+>
+> Security incidents are typically written for technical teams, but leadership needs a different view: business impact, risk exposure, and clear next steps. BoardBrief AI bridges this gap by transforming raw incident narratives into board-ready assessments focused on governance and decision-making.
+>
+> The system is intentionally designed to prioritize trust over completeness. It avoids speculation, clearly states assumptions, and never fabricates missing information. When content is restricted by safety policies, the system returns transparent feedback rather than misleading output.
+>
+> BoardBrief AI is built for CISOs, executives, and boards who need clarity—not technical noise—when responding to cybersecurity risk.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+### What it does
+- **Input:** Plain-text incident description  
+- **Output:** Executive cybersecurity brief with:
+  - Executive summary
+  - Business impact (financial, operational, legal, reputational)
+  - Top 3 recommended actions
+  - Key questions for leadership
+
+---
+
+### Built With
+Google Gemini 3 (gemini-2.0-flash)
+Next.js
+TypeScript
+Vercel
+
+
+---
+
+### Design Decisions
+> The system is deliberately designed as a decision-support tool rather than a technical incident analyzer. It emphasizes executive trust, governance, and responsible AI usage by clearly surfacing uncertainty instead of generating speculative content.
+
+---
+
+## Commit e subir
+
+Depois de salvar:
+
+```bash
+git add README.md
+git commit -m "Update README and Devpost documentation"
+git push
