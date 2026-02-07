@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
-    const model = process.env.GEMINI_MODEL || "gemini-1.5-pro-latest";
+    const model = process.env.GEMINI_MODEL || "gemini-1.5-flash";
 
     if (!apiKey) {
       return NextResponse.json(
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: {
@@ -76,6 +76,18 @@ ${incident}
       JSON.stringify(data, null, 2)
     );
 
+    // Verificar se há erro na resposta
+    if (data.error) {
+      return NextResponse.json(
+        {
+          error: "Gemini API error",
+          details: data.error.message || "Unknown error",
+          raw: data,
+        },
+        { status: 500 }
+      );
+    }
+
     const text =
       data?.candidates?.[0]?.content?.parts
         ?.map((p: any) => p.text)
@@ -95,6 +107,7 @@ ${incident}
 
     return NextResponse.json({ brief: text });
   } catch (err: any) {
+    console.error("Error in generate-brief API:", err);
     return NextResponse.json(
       {
         error: "Server error while generating executive brief.",
