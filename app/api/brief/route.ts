@@ -4,13 +4,9 @@ export async function POST(req: Request) {
   try {
     const { incident } = await req.json();
 
-    if (
-      !incident ||
-      typeof incident !== "string" ||
-      incident.trim().length < 20
-    ) {
+    if (!incident || typeof incident !== "string" || incident.trim().length < 20) {
       return NextResponse.json(
-        { error: "Please provide an incident description (at least 20 characters)." },
+        { error: "Please provide a valid incident description (min 20 characters)." },
         { status: 400 }
       );
     }
@@ -20,76 +16,72 @@ export async function POST(req: Request) {
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Missing GEMINI_API_KEY" },
+        { error: "GEMINI_API_KEY not configured on server." },
         { status: 500 }
       );
     }
 
-    const response = await fetch(
+    const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [
             {
               role: "user",
               parts: [
                 {
-                  text: `You are an expert cybersecurity advisor writing for executives.
+                  text: `
+You are BoardBrief AI.
 
-Write a clear, structured executive brief with the following sections:
+Generate an executive-ready cybersecurity brief with:
 
-1. Executive Summary
-2. Business Impact (operational, financial, legal, reputational)
-3. Top 3 Recommended Actions
-4. Key Questions for Leadership
+1. Executive summary
+2. Business impact (financial, operational, legal, reputational)
+3. Top 3 recommended actions
+4. Key questions for leadership
 
 Incident:
-${incident}`,
+${incident}
+                  `,
                 },
               ],
             },
           ],
           generationConfig: {
             temperature: 0.2,
-            maxOutputTokens: 900,
+            maxOutputTokens: 800,
           },
         }),
       }
     );
 
-    const data = await response.json();
+    const data = await res.json();
 
-    // 🔎 Log real para debug no Vercel
-    console.log("GEMINI RAW RESPONSE:", JSON.stringify(data, null, 2));
+    console.log("GEMINI RESPONSE:", JSON.stringify(data, null, 2));
 
-    let brief = "No response generated.";
+    const candidate = data?.candidates?.[0];
+    const part = candidate?.content?.parts?.[0];
+    const text = part?.text;
 
-    if (data?.candidates?.length) {
-      const candidate = data.candidates[0];
-
-      if (candidate?.content?.parts?.length) {
-        brief = candidate.content.parts
-          .map((p: any) => p.text)
-          .join("");
-      } else if (candidate?.content?.text) {
-        brief = candidate.content.text;
-      } else if (candidate?.outputText) {
-        brief = candidate.outputText;
-      }
+    if (!text) {
+      return NextResponse.json(
+        {
+          brief:
+            "⚠️ Gemini returned no text. Check safety filters or try rephrasing the incident.",
+          raw: data,
+        },
+        { status: 200 }
+      );
     }
 
-    return NextResponse.json({ brief });
-  } catch (error: any) {
-    console.error("API ERROR:", error);
-
+    return NextResponse.json({ brief: text });
+  } catch (err: any) {
     return NextResponse.json(
       {
-        error: "Failed to generate brief",
-        details: error?.message || "Unknown error",
+        error: "Server error while generating brief.",
+        details: err?.message,
       },
       { status: 500 }
     );
