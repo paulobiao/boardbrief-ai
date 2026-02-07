@@ -9,25 +9,35 @@ Finance received a request to change vendor banking details.`;
 
 export default function Page() {
   const [incident, setIncident] = useState(SAMPLE);
-  const [brief, setBrief] = useState("");
+  const [brief, setBrief] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   async function generate() {
-    setError("");
-    setBrief("");
+    setError(null);
+    setBrief(null);
     setLoading(true);
+
     try {
       const res = await fetch("/api/brief", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ incident }),
       });
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "Request failed");
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to generate brief");
+      }
+
+      if (!data?.brief) {
+        throw new Error("API returned no content");
+      }
+
       setBrief(data.brief);
-    } catch (e: any) {
-      setError(e.message || "Error");
+    } catch (err: any) {
+      setError(err.message || "Unexpected error");
     } finally {
       setLoading(false);
     }
@@ -42,6 +52,7 @@ export default function Page() {
         </p>
 
         <div className="mt-8 grid gap-6 md:grid-cols-2">
+          {/* INPUT */}
           <div className="rounded-2xl border p-4 shadow-sm">
             <h2 className="font-semibold">Incident input</h2>
             <textarea
@@ -49,20 +60,36 @@ export default function Page() {
               value={incident}
               onChange={(e) => setIncident(e.target.value)}
             />
+
             <button
               onClick={generate}
               disabled={loading}
               className="mt-4 w-full rounded-xl bg-black text-white py-3 font-semibold disabled:opacity-60"
             >
-              {loading ? "Generating..." : "Generate Executive Brief"}
+              {loading ? "Generating executive brief…" : "Generate Executive Brief"}
             </button>
-            {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+
+            {error && (
+              <p className="mt-3 text-sm text-red-600">
+                ❌ {error}
+              </p>
+            )}
           </div>
 
+          {/* OUTPUT */}
           <div className="rounded-2xl border p-4 shadow-sm">
             <h2 className="font-semibold">Executive brief</h2>
+
             <div className="mt-3 h-64 overflow-auto rounded-xl bg-gray-50 p-3 text-sm whitespace-pre-wrap">
-              {brief || "Click Generate to produce a board-ready brief."}
+              {loading && "⏳ Generating executive brief…"}
+
+              {!loading && !brief && !error && (
+                <span className="text-gray-400">
+                  Click “Generate Executive Brief” to see the result.
+                </span>
+              )}
+
+              {!loading && brief && brief}
             </div>
           </div>
         </div>
