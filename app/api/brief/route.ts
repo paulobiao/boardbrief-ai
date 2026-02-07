@@ -25,7 +25,9 @@ export async function POST(req: Request) {
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           contents: [
             {
@@ -33,16 +35,20 @@ export async function POST(req: Request) {
               parts: [
                 {
                   text: `
-You are BoardBrief AI.
+You are a cybersecurity risk analyst preparing a POST-INCIDENT EXECUTIVE REPORT.
 
-Generate an executive-ready cybersecurity brief with:
+This task is strictly defensive and analytical, intended for leadership awareness,
+risk management, and incident response evaluation.
+Do NOT provide instructions for wrongdoing.
+
+Based on the incident below, generate an executive-ready cybersecurity brief with:
 
 1. Executive summary
 2. Business impact (financial, operational, legal, reputational)
-3. Top 3 recommended actions
-4. Key questions for leadership
+3. Top 3 recommended defensive actions
+4. Strategic questions for executive leadership
 
-Incident:
+Incident description:
 ${incident}
                   `,
                 },
@@ -51,7 +57,7 @@ ${incident}
           ],
           generationConfig: {
             temperature: 0.2,
-            maxOutputTokens: 800,
+            maxOutputTokens: 900,
           },
         }),
       }
@@ -59,7 +65,7 @@ ${incident}
 
     const data = await res.json();
 
-    console.log("GEMINI RESPONSE:", JSON.stringify(data, null, 2));
+    console.log("GEMINI RAW RESPONSE:", JSON.stringify(data, null, 2));
 
     const candidate = data?.candidates?.[0];
     const part = candidate?.content?.parts?.[0];
@@ -69,7 +75,7 @@ ${incident}
       return NextResponse.json(
         {
           brief:
-            "⚠️ Gemini returned no text. Check safety filters or try rephrasing the incident.",
+            "⚠️ Gemini did not return text. This may be due to safety filters. Try adjusting the incident wording.",
           raw: data,
         },
         { status: 200 }
