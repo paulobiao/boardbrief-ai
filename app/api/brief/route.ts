@@ -4,27 +4,37 @@ export async function POST(req: Request) {
   try {
     const { incident } = await req.json();
 
-    if (!incident || typeof incident !== "string" || incident.trim().length < 20) {
+    if (
+      !incident ||
+      typeof incident !== "string" ||
+      incident.trim().length < 20
+    ) {
       return NextResponse.json(
-        { error: "Invalid incident description (minimum 20 characters)." },
+        {
+          error:
+            "Please provide a valid incident description (minimum 20 characters).",
+        },
         { status: 400 }
       );
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
+    const model = process.env.GEMINI_MODEL || "gemini-1.5-pro";
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: "GEMINI_API_KEY not configured." },
+        { error: "GEMINI_API_KEY not configured on server." },
         { status: 500 }
       );
     }
 
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           contents: [
             {
@@ -32,18 +42,21 @@ export async function POST(req: Request) {
               parts: [
                 {
                   text: `
-You are a cybersecurity risk analyst producing a DEFENSIVE, POST-INCIDENT executive report.
-This is for security governance and risk management purposes only.
+You are an AI system assisting executives with post-incident analysis.
 
-Generate a structured executive brief with:
-1. Executive summary
-2. Business impact (financial, operational, legal, reputational)
-3. Top 3 defensive remediation actions
-4. Key strategic questions for executive leadership
+Your task is to generate a high-level, executive-facing cybersecurity brief focused on
+risk assessment and leadership decision-making. Avoid operational or exploit-level detail.
+
+Produce the following sections:
+
+1. Executive Summary
+2. Business Impact (financial, operational, legal, reputational)
+3. Top 3 Recommended Actions
+4. Key Questions for Executive Leadership
 
 Incident description:
 ${incident}
-                  `,
+                  `.trim(),
                 },
               ],
             },
@@ -52,33 +65,31 @@ ${incident}
             temperature: 0.2,
             maxOutputTokens: 900,
           },
-          safetySettings: [
-            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
-            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-            { category: "HARM_CATEGORY_SEXUAL_CONTENT", threshold: "BLOCK_NONE" },
-          ],
         }),
       }
     );
 
-    const data = await res.json();
+    const data = await response.json();
 
-    console.log("GEMINI RAW RESPONSE:", JSON.stringify(data, null, 2));
+    console.log(
+      "GEMINI RAW RESPONSE:",
+      JSON.stringify(data, null, 2)
+    );
 
     const text =
       data?.candidates?.[0]?.content?.parts
         ?.map((p: any) => p.text)
         .join("")
-        ?.trim();
+        ?.trim() || "";
 
     if (!text) {
       return NextResponse.json(
         {
-          error: "Gemini returned no content. Incident likely blocked by safety policy.",
+          error:
+            "Gemini returned no content. The request may have been blocked by safety policy.",
           raw: data,
         },
-        { status: 502 }
+        { status: 200 }
       );
     }
 
@@ -86,7 +97,7 @@ ${incident}
   } catch (err: any) {
     return NextResponse.json(
       {
-        error: "Unexpected server error during brief generation.",
+        error: "Server error while generating executive brief.",
         details: err?.message,
       },
       { status: 500 }
