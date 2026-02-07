@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const incident = body?.incident;
+    const { incident } = await req.json();
 
     if (!incident || typeof incident !== "string" || incident.trim().length < 20) {
       return NextResponse.json(
@@ -13,6 +12,7 @@ export async function POST(req: Request) {
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
+    const model = "gemini-2.0-flash"; // modelo confirmado funcionando
 
     if (!apiKey) {
       return NextResponse.json(
@@ -21,8 +21,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // Modelo comprovadamente funcional
-    const model = "gemini-2.0-flash";
+    // Data do dia (server-side, confiável)
+    const today = new Date().toISOString().split("T")[0];
 
     const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`;
 
@@ -38,14 +38,24 @@ export async function POST(req: Request) {
                 text: `
 You are BoardBrief AI.
 
-Create an executive-ready cybersecurity brief with:
+Generate an executive-ready cybersecurity brief using the date below.
 
-1. Executive summary
-2. Business impact (financial, operational, legal, reputational)
-3. Top 3 recommended actions
-4. Key questions for leadership
+Date of assessment: ${today}
 
-Incident:
+Rules:
+- Do NOT invent dates.
+- If information is unknown, clearly state assumptions.
+- Use professional, executive language.
+- Focus on decision-making, not technical noise.
+
+Structure the brief with:
+
+1. Executive Summary
+2. Business Impact (financial, operational, legal, reputational)
+3. Top 3 Recommended Actions
+4. Key Questions for Leadership
+
+Incident description:
 ${incident}
                 `,
               },
@@ -54,10 +64,10 @@ ${incident}
         ],
         generationConfig: {
           temperature: 0.2,
-          maxOutputTokens: 800,
+          maxOutputTokens: 900,
         },
       }),
-    });
+    );
 
     const data = await response.json();
 
@@ -66,6 +76,7 @@ ${incident}
         {
           error: "Gemini API error",
           details: data?.error?.message || "Unknown error",
+          raw: data,
         },
         { status: response.status }
       );
@@ -76,14 +87,22 @@ ${incident}
     if (!text) {
       return NextResponse.json(
         {
-          error: "Gemini returned no content.",
+          error: "Gemini returned no content. Incident may be blocked by safety policy.",
           raw: data,
         },
         { status: 200 }
       );
     }
 
-    return NextResponse.json({ brief: text });
+    return NextResponse.json({
+      brief: text,
+      meta: {
+        generatedAt: today,
+        model,
+        note: "This brief was generated using an AI model and should be reviewed by leadership.",
+      },
+    });
+
   } catch (err: any) {
     return NextResponse.json(
       {
