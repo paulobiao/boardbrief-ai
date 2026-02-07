@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
-    const model = process.env.GEMINI_MODEL || "gemini-1.5-pro";
+    const model = process.env.GEMINI_MODEL || "gemini-1.5-pro-latest";
 
     if (!apiKey) {
       return NextResponse.json(
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: {
